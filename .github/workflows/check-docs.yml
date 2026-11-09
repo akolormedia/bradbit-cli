@@ -1,6 +1,6 @@
 name: check-docs
 
-# Builds the V2 docs on their own (services/site/src/docs/script/build.ts): compiles every MDX page,
+# Builds the docs on their own (services/site/src/docs/script/build.ts): compiles every MDX page,
 # prerenders it, builds search, checks every link and that pages load nothing from outside /docs. The
 # site's deploy runs the same step, so a broken page fails here instead of blocking the deploy.
 on:
@@ -8,6 +8,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - services/site/**
+      - packages/web/src/content/docs/**
       - packages/protocol/openapi.json
       - packages/cli/src/config/**
       - .github/workflows/check-docs.yml
