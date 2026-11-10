@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [dev, "feat/**"]
+  pull_request:
+
+jobs:
+  build:
+    name: Build macOS (arm64 + x64)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.4
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build darwin-arm64
+        run: bun run --cwd packages/cli script/build.ts --skip-web-ui --outdir=dist/arm64
+        env:
+          OPENCODE_TARGET: darwin-arm64
+
+      - name: Build darwin-x64
+        run: bun run --cwd packages/cli script/build.ts --skip-web-ui --outdir=dist/x64
+        env:
+          OPENCODE_TARGET: darwin-x64
+
+      - name: Smoke test (arm64)
+        run: |
+          set -euo pipefail
+          BIN=packages/cli/dist/arm64/cli-darwin-arm64/bin/bradbit
+          "$BIN" --version
+          "$BIN" serve --hostname 127.0.0.1 --port 46137 > /tmp/serve.log 2>&1 &
+          SERVE_PID=$!
+          for _ in $(seq 1 100); do
+            grep -q 'server password ' /tmp/serve.log && break
+            sleep 0.2
+          done
+          PW=$(grep -m1 'server password ' /tmp/serve.log | sed 's/.*server password //')
+          if [ -z "$PW" ]; then cat /tmp/serve.log; kill "$SERVE_PID"; exit 1; fi
+          AUTH=$(printf 'opencode:%s' "$PW" | base64 | tr -d '\n')
+          curl -fsS -H "Authorization: Basic $AUTH" http://127.0.0.1:46137/api/info | grep -q '"version"'
+          kill "$SERVE_PID" 2>/dev/null || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bradbit-macos
+          path: |
+            packages/cli/dist/arm64/cli-darwin-arm64/bin/bradbit
+            packages/cli/dist/x64/cli-darwin-x64/bin/bradbit
