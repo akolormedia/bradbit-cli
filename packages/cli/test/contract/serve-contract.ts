@@ -48,6 +48,15 @@ function freePort(): Promise<number> {
 }
 
 async function main() {
+  // ── CLI surface ─────────────────────────────────────────────────────
+  const help = Bun.spawnSync({ cmd: [BIN!, "--help"], stdout: "pipe", stderr: "pipe" })
+  const helpOutput = help.stdout.toString()
+  check(
+    "--help describes the Bradbit CLI",
+    helpOutput.includes("Bradbit command line interface"),
+    helpOutput.split("\n").slice(0, 6).join(" | "),
+  )
+
   const port = await freePort()
   const workdir = mkdtempSync(join(tmpdir(), "bradbit-contract-"))
   const base = `http://127.0.0.1:${port}`
