@@ -74,4 +74,4 @@ caerse (2xx/4xx), pero no la semántica completa de una generación real.
 BRADBIT_BIN=/abs/path/to/bradbit bun run packages/cli/test/contract/serve-contract.ts
 ```
 
-En CI corre automáticamente tras compilar `darwin-arm64`.
+En CI corre automáticamente tras compilar `darwin-arm64` y `darwin-x64`; el runner Intel ejecuta el contrato contra el binario nativo `darwin-x64` (un runner Intel no puede lanzar el binario arm64).
