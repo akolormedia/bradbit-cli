@@ -8,7 +8,7 @@ falla y bloquea el merge.
 ## Base
 
 - Upstream: [`anomalyco/opencode`](https://github.com/anomalyco/opencode), rama `dev`.
-- Versión de OpenCode en el fork inicial: `2.2.5` (tag/commit pinneado al sincronizar).
+- Versión de OpenCode en el fork inicial: `2.2.5` (commit `9118c948c5` del `2026-11-10`, pinneado al sincronizar).
 - Arranque: `bradbit serve --hostname 127.0.0.1 --port <port>` con `cwd` = carpeta del proyecto.
 
 ## Arranque (stdout)
@@ -52,12 +52,15 @@ Autenticación: **HTTP Basic** `opencode:<pw>` en todas las rutas `/api/*`.
 
 | `bradbit-cli` | Base OpenCode | Contrato probado |
 |---|---|---|
-| `v0.1.0-alpha.1` | `2.2.5` (`dev`) | 16/16 |
+| `v0.1.0-alpha.1` | `2.2.5` (`dev`) | 16/16 (sin CLI surface ni kit discovery) |
+| `dev` (T-3.1.3) | `2.2.5` (`dev`) | 22/22 |
 
 ## Cobertura y límites
 
-La suite ejercita de forma determinista: arranque/password, 401 sin auth,
-`/api/info`, `/api/model`, sesiones (crear/listar/renombrar), mensajes,
+La suite ejercita de forma determinista: superficie del CLI (`--help` como
+Bradbit y `run --help` con el texto de Bradbit), arranque/password, 401 sin auth, `/api/info`, `/api/model`,
+descubrimiento del kit del proyecto (`/api/agent`, `/api/command`, `/api/skill`
+desde `.opencode/`), sesiones (crear/listar/renombrar), mensajes,
 permission/form lists, interrupt, rechazo de IDs de sesión inválidos, SSE y
 supervivencia tras errores.
 

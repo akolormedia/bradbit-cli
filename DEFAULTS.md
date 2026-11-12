@@ -14,8 +14,10 @@ distribución: qué trae activo, qué queda apagado y qué vive fuera del core.
 El core expone herramientas **genéricas de manipulación de texto y archivos**,
 que sirven igual para `.md`, `.mdx`, `.fountain` y `.txt`:
 
-`read`, `write`, `edit`, `patch`, `glob`, `grep`, `shell` (bash), `todo`,
-`question`, `skill`, `webfetch`, `websearch`, `subagent`, `schedule`.
+`read`, `write`, `edit`, `patch`, `glob`, `grep`, `shell` (bash), `todowrite`,
+`question`, `skill`, `webfetch`, `websearch`, `subagent`; y los `schedule_*`
+cuando el proyecto habilita agendas. Las herramientas de artefactos, MCP e
+imagen son plugins opcionales y no forman parte del toolset de escritura base.
 
 No hay herramientas de compilación, depuración ni LSP cableadas al core. Cada
 agente del kit declara qué herramientas usa (ver `ADR-004`).

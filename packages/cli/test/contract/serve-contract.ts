@@ -11,7 +11,7 @@
  */
 
 import { spawn } from "bun"
-import { mkdtempSync } from "node:fs"
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { createServer } from "node:net"
@@ -56,10 +56,42 @@ async function main() {
     helpOutput.includes("Bradbit command line interface"),
     helpOutput.split("\n").slice(0, 6).join(" | "),
   )
+  check(
+    "--help uses the bradbit command name",
+    helpOutput.includes("bradbit <subcommand>"),
+    helpOutput.split("\n").slice(0, 8).join(" | "),
+  )
+
+  const runHelp = Bun.spawnSync({ cmd: [BIN!, "run", "--help"], stdout: "pipe", stderr: "pipe" })
+  check(
+    "`run --help` uses Bradbit copy",
+    runHelp.exitCode === 0 && runHelp.stdout.toString().includes("Run Bradbit with a message"),
+    runHelp.stdout.toString().split("\n").slice(0, 6).join(" | "),
+  )
 
   const port = await freePort()
   const workdir = mkdtempSync(join(tmpdir(), "bradbit-contract-"))
+
+  // Minimal narrative kit, equivalent to what guionista-kit installs in a project.
+  mkdirSync(join(workdir, ".opencode/agent"), { recursive: true })
+  writeFileSync(
+    join(workdir, ".opencode/agent/guionista.md"),
+    "---\ndescription: Escribe escenas de guion\nmode: primary\n---\n\nEscribe escenas claras y visuales.\n",
+  )
+  mkdirSync(join(workdir, ".opencode/command"), { recursive: true })
+  writeFileSync(
+    join(workdir, ".opencode/command/escena.md"),
+    "---\ndescription: Escribe una escena\n---\n\nEscribe una escena con formato Fountain.\n",
+  )
+  mkdirSync(join(workdir, ".opencode/skills/escribir-escena"), { recursive: true })
+  writeFileSync(
+    join(workdir, ".opencode/skills/escribir-escena/SKILL.md"),
+    "---\nname: escribir-escena\ndescription: Escribe una escena de guion\n---\n\nDesarrolla la escena pedida.\n",
+  )
+  writeFileSync(join(workdir, "AGENTS.md"), "# Proyecto de prueba\n\nKit narrativo mínimo.\n")
+
   const base = `http://127.0.0.1:${port}`
+  const locationQuery = `?location[directory]=${encodeURIComponent(workdir)}`
 
   const proc = spawn({
     cmd: [BIN!, "serve", "--hostname", "127.0.0.1", "--port", String(port)],
@@ -124,7 +156,9 @@ async function main() {
     check("GET /api/model → { data: [] }", models.status === 200 && Array.isArray(models.json?.data))
 
     // ── Sessions ────────────────────────────────────────────────────────
-    const created = await req("POST", "/api/session", { title: "Contract" })
+    const created = await req("POST", `/api/session${locationQuery}`, {
+      title: "Contract",
+    })
     const sessionId = created.json?.data?.id
     check(
       "POST /api/session → id prefixed ses_",
@@ -145,6 +179,45 @@ async function main() {
 
     const messages = await req("GET", `/api/session/${sessionId}/message?limit=200&order=asc`)
     check("GET /api/session/{id}/message → { data: [...] }", messages.status === 200 && Array.isArray(messages.json?.data))
+
+    // ── Project kit discovery ───────────────────────────────────────────
+    // Location services and config plugins settle asynchronously after the first
+    // session, so poll briefly instead of racing the initial load.
+    let agents = await req("GET", `/api/agent${locationQuery}`)
+    let commands = await req("GET", `/api/command${locationQuery}`)
+    let skills = await req("GET", `/api/skill${locationQuery}`)
+    const kitDeadline = Date.now() + 10_000
+    while (Date.now() < kitDeadline) {
+      const foundAgent = agents.json?.data?.some((agent: any) => agent.id === "guionista")
+      const foundCommand = commands.json?.data?.some((command: any) => command.name === "escena")
+      const foundSkill = skills.json?.data?.some((skill: any) => skill.name === "escribir-escena")
+      if (foundAgent && foundCommand && foundSkill) break
+      await Bun.sleep(250)
+      agents = await req("GET", `/api/agent${locationQuery}`)
+      commands = await req("GET", `/api/command${locationQuery}`)
+      skills = await req("GET", `/api/skill${locationQuery}`)
+    }
+    check(
+      "GET /api/agent discovers .opencode/agent/guionista.md",
+      agents.status === 200 &&
+        Array.isArray(agents.json?.data) &&
+        agents.json.data.some((agent: any) => agent.id === "guionista"),
+      JSON.stringify(agents.json)?.slice(0, 200),
+    )
+    check(
+      "GET /api/command discovers .opencode/command/escena.md",
+      commands.status === 200 &&
+        Array.isArray(commands.json?.data) &&
+        commands.json.data.some((command: any) => command.name === "escena"),
+      JSON.stringify(commands.json)?.slice(0, 200),
+    )
+    check(
+      "GET /api/skill discovers .opencode/skills/escribir-escena",
+      skills.status === 200 &&
+        Array.isArray(skills.json?.data) &&
+        skills.json.data.some((skill: any) => skill.name === "escribir-escena"),
+      JSON.stringify(skills.json)?.slice(0, 200),
+    )
 
     const permissions = await req("GET", `/api/session/${sessionId}/permission`)
     check("GET /api/session/{id}/permission → { data: [...] }", permissions.status === 200 && Array.isArray(permissions.json?.data))
