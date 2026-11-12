@@ -2,13 +2,18 @@ name: CI
 
 on:
   push:
-    branches: [dev, "feat/**"]
+    branches: [dev]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     name: Build macOS (arm64 + x64)
     runs-on: macos-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
