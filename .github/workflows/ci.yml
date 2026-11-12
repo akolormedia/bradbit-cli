@@ -24,6 +24,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Validate upstream pin
+        run: bun run packages/cli/script/check-upstream-pin.ts
+
       - name: Build darwin-arm64
         run: bun run --cwd packages/cli script/build.ts --skip-web-ui --outdir=dist/arm64
         env:

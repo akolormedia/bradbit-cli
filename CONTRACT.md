@@ -8,7 +8,7 @@ falla y bloquea el merge.
 ## Base
 
 - Upstream: [`anomalyco/opencode`](https://github.com/anomalyco/opencode), rama `dev`.
-- Versión de OpenCode en el fork inicial: `2.2.5` (commit `9118c948c5` del `2026-11-10`, pinneado al sincronizar).
+- Versión de OpenCode en el fork inicial: `2.2.5` (commit `20c056d84249fe29be7244ff4f9e0aad044c4799` del `2026-11-09`, pinneado al sincronizar; ver [`upstream.json`](upstream.json)).
 - Arranque: `bradbit serve --hostname 127.0.0.1 --port <port>` con `cwd` = carpeta del proyecto.
 
 ## Arranque (stdout)

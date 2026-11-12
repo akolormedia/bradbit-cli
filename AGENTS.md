@@ -1,3 +1,29 @@
+# Bradbit CLI fork
+
+This repository is a fork of OpenCode adapted for Bradbit. Read [`README.md`](README.md),
+[`UPSTREAM.md`](UPSTREAM.md), [`DEFAULTS.md`](DEFAULTS.md), [`BYOK.md`](BYOK.md) and
+[`CONTRACT.md`](CONTRACT.md) before changing the CLI.
+
+## Fork rules
+
+- The product name and binary are **`bradbit`**. Do not reintroduce `opencode` in visible CLI copy;
+  internal package names and config filenames stay upstream-compatible.
+- Preserve the `opencode serve` HTTP/SSE contract. Run both contract suites after touching the server,
+  session, provider or config surface:
+  `packages/cli/test/contract/serve-contract.ts` and `packages/cli/test/contract/byok-contract.ts`.
+- The `guionista-kit` snapshot in `packages/cli/src/kit/guionista-kit.generated.ts` is generated.
+  Regenerate it with `bun run sync:kit <path-to-guionista-kit>` from `packages/cli`; do not edit it by hand.
+- Use the pinned Bun version from `package.json` (`1.4.4`) for builds and the pre-push hook.
+- The fork overrides the upstream branch-name rule below: use `feat/T-3.1.x-<slug>` for tickets from
+  the `bradbit-project` backlog.
+- Keep only the fork's `.github/workflows/ci.yml` active in GitHub Actions. Upstream workflows depend on
+  Anomaly runners, secrets and release environments and are intentionally disabled in this fork.
+- The fork CI runs on `macos-15-intel`: build both `darwin-arm64` and `darwin-x64`, then run the contracts
+  against the native x64 binary.
+
+The rest of this file is the upstream OpenCode contributor guidance and still applies unless it conflicts
+with the fork rules above.
+
 - After changing the public Protocol or Server `HttpApi`, run `bun run generate` from `packages/client`. Do not edit generated client files directly.
 - Keep runtime dependencies directed from Schema to Core and Protocol, then from Core and Protocol to Server. Client runtime code may depend on Schema and Protocol but never Core or Server; `sdk` composes Client, Core, and Server.
 - This repository does not use Changesets. Do not add `.changeset` files; follow the existing release workflow instead.
