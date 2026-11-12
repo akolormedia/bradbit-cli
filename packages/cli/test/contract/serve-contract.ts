@@ -11,7 +11,7 @@
  */
 
 import { spawn } from "bun"
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { createServer } from "node:net"
@@ -69,8 +69,29 @@ async function main() {
     runHelp.stdout.toString().split("\n").slice(0, 6).join(" | "),
   )
 
+  const initHelp = Bun.spawnSync({ cmd: [BIN!, "init", "--help"], stdout: "pipe", stderr: "pipe" })
+  check(
+    "`init --help` describes guionista-kit",
+    initHelp.exitCode === 0 && initHelp.stdout.toString().includes("guionista-kit"),
+    initHelp.stdout.toString().split("\n").slice(0, 6).join(" | "),
+  )
+
   const port = await freePort()
   const workdir = mkdtempSync(join(tmpdir(), "bradbit-contract-"))
+  const initTarget = join(workdir, "init-project")
+  const initialized = Bun.spawnSync({
+    cmd: [BIN!, "init", initTarget],
+    stdout: "pipe",
+    stderr: "pipe",
+  })
+  check(
+    "`init` creates a guionista-kit project with Git",
+    initialized.exitCode === 0 &&
+      existsSync(join(initTarget, "AGENTS.md")) &&
+      existsSync(join(initTarget, ".opencode/agents/guionista.md")) &&
+      existsSync(join(initTarget, ".git")),
+    initialized.stderr.toString().split("\n").slice(0, 4).join(" | "),
+  )
 
   // Minimal narrative kit, equivalent to what guionista-kit installs in a project.
   mkdirSync(join(workdir, ".opencode/agent"), { recursive: true })

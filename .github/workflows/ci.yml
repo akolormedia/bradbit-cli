@@ -2,13 +2,18 @@ name: CI
 
 on:
   push:
-    branches: [dev, "feat/**"]
+    branches: [dev]
   pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
     name: Build macOS (arm64 + x64)
-    runs-on: macos-latest
+    runs-on: macos-15-intel
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -29,8 +34,10 @@ jobs:
         env:
           OPENCODE_TARGET: darwin-x64
 
-      - name: Contract test (arm64)
-        run: BRADBIT_BIN="$PWD/packages/cli/dist/arm64/cli-darwin-arm64/bin/bradbit" bun run packages/cli/test/contract/serve-contract.ts
+      # The Intel runner cannot execute the arm64 binary, so the native x64
+      # build runs the contract. Both architectures are still built above.
+      - name: Contract test (x64)
+        run: BRADBIT_BIN="$PWD/packages/cli/dist/x64/cli-darwin-x64/bin/bradbit" bun run packages/cli/test/contract/serve-contract.ts
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
