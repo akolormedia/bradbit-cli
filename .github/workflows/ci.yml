@@ -39,6 +39,9 @@ jobs:
       - name: Contract test (x64)
         run: BRADBIT_BIN="$PWD/packages/cli/dist/x64/cli-darwin-x64/bin/bradbit" bun run packages/cli/test/contract/serve-contract.ts
 
+      - name: BYOK contract (x64)
+        run: BRADBIT_BIN="$PWD/packages/cli/dist/x64/cli-darwin-x64/bin/bradbit" bun run packages/cli/test/contract/byok-contract.ts
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

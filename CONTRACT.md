@@ -54,6 +54,17 @@ Autenticación: **HTTP Basic** `opencode:<pw>` en todas las rutas `/api/*`.
 |---|---|---|
 | `v0.1.0-alpha.1` | `2.2.5` (`dev`) | 16/16 (sin CLI surface ni kit discovery) |
 | `dev` (T-3.1.4) | `2.2.5` (`dev`) | 24/24 |
+| `dev` BYOK (T-3.1.5) | `2.2.5` (`dev`) | 7/7 (contrato separado) |
+
+## Contrato BYOK (T-3.1.5)
+
+[`byok-contract.ts`](packages/cli/test/contract/byok-contract.ts) congela el camino que usará `bradbit-editor` para BYOK:
+
+- Config inline vía `OPENCODE_CONFIG_CONTENT` con un proveedor OpenAI-compatible custom.
+- Credencial inyectada por una variable declarada en `providers.<id>.env`; `/api/integration/<id>` la reporta como conexión `env`.
+- `settings.baseURL` se conserva en `/api/provider/<id>`.
+- La clave nunca aparece en stdout/stderr del servidor.
+- El servidor sigue vivo después del setup.
 
 ## Cobertura y límites
 
@@ -74,4 +85,8 @@ caerse (2xx/4xx), pero no la semántica completa de una generación real.
 BRADBIT_BIN=/abs/path/to/bradbit bun run packages/cli/test/contract/serve-contract.ts
 ```
 
-En CI corre automáticamente tras compilar `darwin-arm64` y `darwin-x64`; el runner Intel ejecuta el contrato contra el binario nativo `darwin-x64` (un runner Intel no puede lanzar el binario arm64).
+En CI corre automáticamente tras compilar `darwin-arm64` y `darwin-x64`; el runner Intel ejecuta ambos contratos contra el binario nativo `darwin-x64` (un runner Intel no puede lanzar el binario arm64).
+
+```bash
+BRADBIT_BIN=/abs/path/to/bradbit bun run packages/cli/test/contract/byok-contract.ts
+```
