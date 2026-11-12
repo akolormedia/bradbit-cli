@@ -53,12 +53,12 @@ Autenticación: **HTTP Basic** `opencode:<pw>` en todas las rutas `/api/*`.
 | `bradbit-cli` | Base OpenCode | Contrato probado |
 |---|---|---|
 | `v0.1.0-alpha.1` | `2.2.5` (`dev`) | 16/16 (sin CLI surface ni kit discovery) |
-| `dev` (T-3.1.3) | `2.2.5` (`dev`) | 22/22 |
+| `dev` (T-3.1.4) | `2.2.5` (`dev`) | 24/24 |
 
 ## Cobertura y límites
 
 La suite ejercita de forma determinista: superficie del CLI (`--help` como
-Bradbit y `run --help` con el texto de Bradbit), arranque/password, 401 sin auth, `/api/info`, `/api/model`,
+Bradbit, `run --help` con el texto de Bradbit e `init --help`/`init` con el kit embebido), arranque/password, 401 sin auth, `/api/info`, `/api/model`,
 descubrimiento del kit del proyecto (`/api/agent`, `/api/command`, `/api/skill`
 desde `.opencode/`), sesiones (crear/listar/renombrar), mensajes,
 permission/form lists, interrupt, rechazo de IDs de sesión inválidos, SSE y

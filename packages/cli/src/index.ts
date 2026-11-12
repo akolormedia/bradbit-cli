@@ -77,6 +77,7 @@ const Handlers = Runtime.handlers(Commands, {
   models: () => import("./commands/handlers/models"),
   stats: () => import("./commands/handlers/stats"),
   mini: () => import("./commands/handlers/mini"),
+  init: () => import("./commands/handlers/init"),
   run: () => import("./commands/handlers/run"),
   pair: () => import("./commands/handlers/pair"),
   reload: () => import("./commands/handlers/reload"),

@@ -397,6 +397,14 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
         demo: Flag.Boolean("demo").pipe(Flag.withDefault(false), Flag.withHidden),
       },
     }),
+    Spec.make("init", {
+      description: "Create a Bradbit writing project from the embedded guionista-kit",
+      params: {
+        destination: Argument.String("destination").pipe(
+          Argument.withDescription("Folder to create or initialize as a Bradbit project"),
+        ),
+      },
+    }),
     Spec.make("run", {
       description: "Run Bradbit with a message",
       globalFlags: ServerFlags,
