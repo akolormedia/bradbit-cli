@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test"
-import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
+import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
 import { guionistaKitFiles } from "../src/kit/guionista-kit.generated"
@@ -20,6 +20,18 @@ async function exists(target: string) {
   } catch {
     return false
   }
+}
+
+async function listProjectFiles(root: string, prefix = ""): Promise<string[]> {
+  const entries = await readdir(path.join(root, prefix), { withFileTypes: true })
+  const files: string[] = []
+  for (const entry of entries) {
+    if (prefix === "" && entry.name === ".git") continue
+    const relative = prefix ? `${prefix}/${entry.name}` : entry.name
+    if (entry.isDirectory()) files.push(...(await listProjectFiles(root, relative)))
+    else files.push(relative)
+  }
+  return files
 }
 
 function isGitRepository(target: string) {
@@ -63,6 +75,12 @@ describe("bradbit init (T-3.1.4)", () => {
     }
     expect(await readFile(path.join(target, "AGENTS.md"), "utf8")).toContain("biblia")
     expect(isGitRepository(target)).toBe(true)
+
+    const written = (await listProjectFiles(target)).toSorted()
+    expect(written).toEqual(Object.keys(guionistaKitFiles).toSorted())
+    for (const [relative, content] of Object.entries(guionistaKitFiles)) {
+      expect(await readFile(path.join(target, relative), "utf8")).toBe(content)
+    }
   })
 
   test("initializes an existing empty directory", async () => {
