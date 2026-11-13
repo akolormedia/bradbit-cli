@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test"
 import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import path from "node:path"
-import { guionistaKitFiles } from "../src/kit/guionista-kit.generated"
+import { guionistaKitFiles, kits } from "../src/kit/kits.generated"
 import { initProject, validateProjectName } from "../src/kit/init-project"
 
 const roots: string[] = []
@@ -81,6 +81,58 @@ describe("bradbit init (T-3.1.4)", () => {
     for (const [relative, content] of Object.entries(guionistaKitFiles)) {
       expect(await readFile(path.join(target, relative), "utf8")).toBe(content)
     }
+  })
+
+  test("creates a libro-kit project", async () => {
+    const root = await tempRoot()
+    const target = path.join(root, "mi-novela")
+
+    const result = await initProject(target, "libro-kit")
+
+    expect(result.alreadyInitialized).toBe(false)
+    for (const relative of [
+      "AGENTS.md",
+      ".bradbit/agents/novelist.md",
+      ".bradbit/skills/write-chapter/SKILL.md",
+      "bible/premise.md",
+      "structure/outline.md",
+      "manuscript/title-page.md",
+      "pitch/synopsis.md",
+    ]) {
+      expect(await exists(path.join(target, relative))).toBe(true)
+    }
+    expect((await listProjectFiles(target)).toSorted()).toEqual(
+      Object.keys(kits["libro-kit"].files).toSorted(),
+    )
+  })
+
+  test("creates a campaign-kit project", async () => {
+    const root = await tempRoot()
+    const target = path.join(root, "mi-campana")
+
+    const result = await initProject(target, "campaign-kit")
+
+    expect(result.alreadyInitialized).toBe(false)
+    for (const relative of [
+      "AGENTS.md",
+      ".bradbit/agents/strategist.md",
+      ".bradbit/skills/copywriting/SKILL.md",
+      "clients/_template/client.md",
+      "campaigns/_template/brief.md",
+      "library/channel-specs/social.md",
+    ]) {
+      expect(await exists(path.join(target, relative))).toBe(true)
+    }
+    expect((await listProjectFiles(target)).toSorted()).toEqual(
+      Object.keys(kits["campaign-kit"].files).toSorted(),
+    )
+  })
+
+  test("rejects an unknown kit", async () => {
+    const root = await tempRoot()
+    await expect(
+      initProject(path.join(root, "otro"), "desconocido"),
+    ).rejects.toThrow(/Unknown kit/)
   })
 
   test("initializes an existing empty directory", async () => {

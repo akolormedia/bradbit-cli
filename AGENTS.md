@@ -12,7 +12,7 @@ This repository is a fork of OpenCode adapted for Bradbit. Read [`README.md`](RE
   session, provider or config surface:
   `packages/cli/test/contract/serve-contract.ts` and `packages/cli/test/contract/byok-contract.ts`.
 - The `guionista-kit` snapshot in `packages/cli/src/kit/guionista-kit.generated.ts` is generated.
-  Regenerate it with `bun run sync:kit <path-to-guionista-kit>` from `packages/cli`; do not edit it by hand.
+  Regenerate it with `bun run sync:kit <kit-path>...` from `packages/cli`; do not edit it by hand.
 - Use the pinned Bun version from `package.json` (`1.4.4`) for builds and the pre-push hook.
 - The fork overrides the upstream branch-name rule below: use `feat/T-3.1.x-<slug>` for tickets from
   the `bradbit-project` backlog.

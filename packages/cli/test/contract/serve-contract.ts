@@ -71,9 +71,11 @@ async function main() {
 
   const initHelp = Bun.spawnSync({ cmd: [BIN!, "init", "--help"], stdout: "pipe", stderr: "pipe" })
   check(
-    "`init --help` describes guionista-kit",
-    initHelp.exitCode === 0 && initHelp.stdout.toString().includes("guionista-kit"),
-    initHelp.stdout.toString().split("\n").slice(0, 6).join(" | "),
+    "`init --help` describes the writing kits",
+    initHelp.exitCode === 0 &&
+      initHelp.stdout.toString().includes("guionista-kit") &&
+      initHelp.stdout.toString().includes("--kit"),
+    initHelp.stdout.toString().split("\n").slice(0, 8).join(" | "),
   )
 
   const port = await freePort()
@@ -91,6 +93,36 @@ async function main() {
       existsSync(join(initTarget, ".bradbit/agents/screenwriter.md")) &&
       existsSync(join(initTarget, ".git")),
     initialized.stderr.toString().split("\n").slice(0, 4).join(" | "),
+  )
+
+  const libroTarget = join(workdir, "libro-project")
+  const libroInitialized = Bun.spawnSync({
+    cmd: [BIN!, "init", libroTarget, "--kit", "libro-kit"],
+    stdout: "pipe",
+    stderr: "pipe",
+  })
+  check(
+    "`init --kit libro-kit` creates a novel workspace",
+    libroInitialized.exitCode === 0 &&
+      existsSync(join(libroTarget, ".bradbit/agents/novelist.md")) &&
+      existsSync(join(libroTarget, "bible/premise.md")) &&
+      existsSync(join(libroTarget, "structure/outline.md")),
+    libroInitialized.stderr.toString().split("\n").slice(0, 4).join(" | "),
+  )
+
+  const campaignTarget = join(workdir, "campaign-project")
+  const campaignInitialized = Bun.spawnSync({
+    cmd: [BIN!, "init", campaignTarget, "--kit", "campaign-kit"],
+    stdout: "pipe",
+    stderr: "pipe",
+  })
+  check(
+    "`init --kit campaign-kit` creates an advertising workspace",
+    campaignInitialized.exitCode === 0 &&
+      existsSync(join(campaignTarget, ".bradbit/agents/strategist.md")) &&
+      existsSync(join(campaignTarget, "clients/_template/client.md")) &&
+      existsSync(join(campaignTarget, "library/channel-specs/social.md")),
+    campaignInitialized.stderr.toString().split("\n").slice(0, 4).join(" | "),
   )
 
   // Minimal narrative kit, equivalent to what guionista-kit installs in a project.

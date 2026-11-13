@@ -398,10 +398,14 @@ const Root = Spec.make(typeof OPENCODE_CLI_NAME === "string" ? OPENCODE_CLI_NAME
       },
     }),
     Spec.make("init", {
-      description: "Create a Bradbit writing project from the embedded guionista-kit",
+      description: "Create a Bradbit writing project from an embedded kit",
       params: {
         destination: Argument.String("destination").pipe(
           Argument.withDescription("Folder to create or initialize as a Bradbit project"),
+        ),
+        kit: Flag.String("kit").pipe(
+          Flag.withDescription("Writing kit: guionista-kit, campaign-kit or libro-kit"),
+          Flag.withDefault("guionista-kit"),
         ),
       },
     }),
