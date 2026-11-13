@@ -67,7 +67,7 @@ bradbit auth list --format json
 
 ## Seguridad
 
-- No pongas claves en `opencode.json`, `.opencode/`, `AGENTS.md` ni en los
+- No pongas claves en `opencode.json`, `.bradbit/`, `.opencode/`, `AGENTS.md` ni en los
   argumentos del comando (`ps` puede verlos).
 - El servidor no imprime las claves en stdout/stderr; el contrato
   [`byok-contract.ts`](packages/cli/test/contract/byok-contract.ts) verifica que

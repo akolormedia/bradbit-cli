@@ -34,7 +34,7 @@ por defecto**; si un proyecto declara `lsp` en su configuración, es opt-in.
 
 Los agentes (`guionista`, `editor`, `investigador`, `personaje`), comandos
 (`/idea`, `/escena`, `/revisar`, `/voz`…) y skills viven en el **kit del
-proyecto** (`.opencode/` + `AGENTS.md`), nunca en el código del core. Esto es
+proyecto** (`.bradbit/` + `AGENTS.md`; `.opencode/` como legado), nunca en el código del core. Esto es
 deliberado (`ADR-004`): el kit funciona igual en `opencode` por terminal y en
 `bradbit`.
 

@@ -28,7 +28,7 @@ bradbit run "Dame tres ideas para el episodio 2"
 - The binary and visible command are **`bradbit`**.
 - `bradbit init <destino>` creates the `guionista-kit` project skeleton and runs `git init`.
 - Writing defaults live in [`DEFAULTS.md`](DEFAULTS.md): generic text/file tools, no LSP runtime
-  started by default, and narrative capabilities in the project's `.opencode/` kit.
+  started by default, and narrative capabilities in the project's `.bradbit/` kit (`.opencode/` is legacy-compatible).
 - BYOK and custom OpenAI-compatible providers are documented in [`BYOK.md`](BYOK.md).
 - The editor consumes the frozen HTTP/SSE surface in [`CONTRACT.md`](CONTRACT.md).
 

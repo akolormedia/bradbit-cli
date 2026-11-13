@@ -147,4 +147,27 @@ describe("ConfigDiscovery.discover", () => {
       ),
     ),
   )
+
+  it.live("discovers .bradbit as the canonical root and ranks it above .opencode", () =>
+    Effect.acquireDisposable(Effect.promise(() => tmpdir())).pipe(
+      Effect.flatMap((tmp) =>
+        Effect.gen(function* () {
+          const root = yield* Effect.promise(() => fs.realpath(tmp.path))
+          const project = path.join(root, "project")
+          yield* Effect.promise(async () => {
+            await fs.mkdir(path.join(project, ".opencode"), { recursive: true })
+            await fs.mkdir(path.join(project, ".bradbit"), { recursive: true })
+          })
+
+          const sources = yield* discoverWith(root, project, project)
+          const roots = sources.project.filter((entry) => inFixture(project, entry.path))
+          expect(roots).toEqual([
+            { path: AbsolutePath.make(path.join(project, ".opencode")), present: true },
+            { path: AbsolutePath.make(path.join(project, ".bradbit")), present: true },
+          ])
+          expect(sources.direct.filter((entry) => path.basename(entry).startsWith("."))).toEqual([])
+        }),
+      ),
+    ),
+  )
 })
