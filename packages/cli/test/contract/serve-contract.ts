@@ -11,7 +11,7 @@
  */
 
 import { spawn } from "bun"
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { createServer } from "node:net"
@@ -77,7 +77,7 @@ async function main() {
   )
 
   const port = await freePort()
-  const workdir = mkdtempSync(join(tmpdir(), "bradbit-contract-"))
+  const workdir = realpathSync(mkdtempSync(join(tmpdir(), "bradbit-contract-")))
   const initTarget = join(workdir, "init-project")
   const initialized = Bun.spawnSync({
     cmd: [BIN!, "init", initTarget],
@@ -108,6 +108,38 @@ async function main() {
   writeFileSync(
     join(workdir, ".opencode/skills/escribir-escena/SKILL.md"),
     "---\nname: escribir-escena\ndescription: Escribe una escena de guion\n---\n\nDesarrolla la escena pedida.\n",
+  )
+
+  // Canonical `.bradbit` entries with the same ids must win over `.opencode`.
+  mkdirSync(join(workdir, ".bradbit/agents"), { recursive: true })
+  writeFileSync(
+    join(workdir, ".bradbit/agents/guionista.md"),
+    "---\ndescription: Escribe escenas desde .bradbit\nmode: primary\n---\n\nEscribe escenas desde la carpeta canónica.\n",
+  )
+  mkdirSync(join(workdir, ".bradbit/commands"), { recursive: true })
+  writeFileSync(
+    join(workdir, ".bradbit/commands/escena.md"),
+    "---\ndescription: Escribe una escena desde .bradbit\n---\n\nEscribe una escena desde la carpeta canónica.\n",
+  )
+  mkdirSync(join(workdir, ".bradbit/skills/escribir-escena"), { recursive: true })
+  writeFileSync(
+    join(workdir, ".bradbit/skills/escribir-escena/SKILL.md"),
+    "---\nname: escribir-escena\ndescription: Escribe una escena desde .bradbit\n---\n\nDesarrolla la escena desde la carpeta canónica.\n",
+  )
+
+  // Legacy-only entries prove `.opencode` still works.
+  writeFileSync(
+    join(workdir, ".opencode/agent/legacy.md"),
+    "---\ndescription: Agente legacy\nmode: primary\n---\n\nSolo existe en .opencode.\n",
+  )
+  writeFileSync(
+    join(workdir, ".opencode/command/legacy-command.md"),
+    "---\ndescription: Comando legacy\n---\n\nSolo existe en .opencode.\n",
+  )
+  mkdirSync(join(workdir, ".opencode/skills/legacy-skill"), { recursive: true })
+  writeFileSync(
+    join(workdir, ".opencode/skills/legacy-skill/SKILL.md"),
+    "---\nname: legacy-skill\ndescription: Skill legacy\n---\n\nSolo existe en .opencode.\n",
   )
   writeFileSync(join(workdir, "AGENTS.md"), "# Proyecto de prueba\n\nKit narrativo mínimo.\n")
 
@@ -207,38 +239,86 @@ async function main() {
     let agents = await req("GET", `/api/agent${locationQuery}`)
     let commands = await req("GET", `/api/command${locationQuery}`)
     let skills = await req("GET", `/api/skill${locationQuery}`)
+    const agent = (id: string) => agents.json?.data?.find((item: any) => item.id === id)
+    const command = (name: string) => commands.json?.data?.find((item: any) => item.name === name)
+    const skill = (name: string) => skills.json?.data?.find((item: any) => item.name === name)
+    const kitReady = () =>
+      agent("guionista")?.description === "Escribe escenas desde .bradbit" &&
+      command("escena")?.description === "Escribe una escena desde .bradbit" &&
+      skill("escribir-escena")?.description === "Escribe una escena desde .bradbit" &&
+      agent("legacy") !== undefined &&
+      command("legacy-command") !== undefined &&
+      skill("legacy-skill") !== undefined
     const kitDeadline = Date.now() + 10_000
     while (Date.now() < kitDeadline) {
-      const foundAgent = agents.json?.data?.some((agent: any) => agent.id === "guionista")
-      const foundCommand = commands.json?.data?.some((command: any) => command.name === "escena")
-      const foundSkill = skills.json?.data?.some((skill: any) => skill.name === "escribir-escena")
-      if (foundAgent && foundCommand && foundSkill) break
+      if (kitReady()) break
       await Bun.sleep(250)
       agents = await req("GET", `/api/agent${locationQuery}`)
       commands = await req("GET", `/api/command${locationQuery}`)
       skills = await req("GET", `/api/skill${locationQuery}`)
     }
     check(
-      "GET /api/agent discovers .opencode/agent/guionista.md",
-      agents.status === 200 &&
-        Array.isArray(agents.json?.data) &&
-        agents.json.data.some((agent: any) => agent.id === "guionista"),
+      "GET /api/agent prefers .bradbit/agents/guionista.md",
+      agents.status === 200 && agent("guionista")?.description === "Escribe escenas desde .bradbit",
       JSON.stringify(agents.json)?.slice(0, 200),
     )
     check(
-      "GET /api/command discovers .opencode/command/escena.md",
-      commands.status === 200 &&
-        Array.isArray(commands.json?.data) &&
-        commands.json.data.some((command: any) => command.name === "escena"),
+      "GET /api/command prefers .bradbit/commands/escena.md",
+      commands.status === 200 && command("escena")?.description === "Escribe una escena desde .bradbit",
       JSON.stringify(commands.json)?.slice(0, 200),
     )
     check(
-      "GET /api/skill discovers .opencode/skills/escribir-escena",
-      skills.status === 200 &&
-        Array.isArray(skills.json?.data) &&
-        skills.json.data.some((skill: any) => skill.name === "escribir-escena"),
+      "GET /api/skill prefers .bradbit/skills/escribir-escena",
+      skills.status === 200 && skill("escribir-escena")?.description === "Escribe una escena desde .bradbit",
       JSON.stringify(skills.json)?.slice(0, 200),
     )
+    check(
+      "GET /api/agent keeps .opencode legacy entries",
+      agent("legacy") !== undefined,
+      JSON.stringify(agents.json)?.slice(0, 200),
+    )
+    check(
+      "GET /api/command keeps .opencode legacy entries",
+      command("legacy-command") !== undefined,
+      JSON.stringify(commands.json)?.slice(0, 200),
+    )
+    check(
+      "GET /api/skill keeps .opencode legacy entries",
+      skill("legacy-skill") !== undefined,
+      JSON.stringify(skills.json)?.slice(0, 200),
+    )
+
+    // Live reload: the ConfigWatch plan must include `.bradbit` so edits are
+    // observed without restarting the server.
+    const reloadedAgent = join(workdir, ".bradbit/agents/reloaded.md")
+    writeFileSync(
+      reloadedAgent,
+      "---\ndescription: Agente recargado\nmode: primary\n---\n\nAparece sin reiniciar el servidor.\n",
+    )
+    let reloaded = false
+    const reloadDeadline = Date.now() + 10_000
+    while (Date.now() < reloadDeadline) {
+      const response = await req("GET", `/api/agent${locationQuery}`)
+      if (response.json?.data?.some((item: any) => item.id === "reloaded")) {
+        reloaded = true
+        break
+      }
+      await Bun.sleep(250)
+    }
+    check("GET /api/agent reloads .bradbit additions live", reloaded)
+
+    rmSync(reloadedAgent)
+    let removed = false
+    const removeDeadline = Date.now() + 10_000
+    while (Date.now() < removeDeadline) {
+      const response = await req("GET", `/api/agent${locationQuery}`)
+      if (!response.json?.data?.some((item: any) => item.id === "reloaded")) {
+        removed = true
+        break
+      }
+      await Bun.sleep(250)
+    }
+    check("GET /api/agent reloads .bradbit deletions live", removed)
 
     const permissions = await req("GET", `/api/session/${sessionId}/permission`)
     check("GET /api/session/{id}/permission → { data: [...] }", permissions.status === 200 && Array.isArray(permissions.json?.data))

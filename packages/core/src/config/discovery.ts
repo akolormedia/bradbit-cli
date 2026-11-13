@@ -79,7 +79,11 @@ export const discover = Effect.fn("ConfigDiscovery.discover")(function* (options
     globalRoots.slice(0, configDirectories.length).includes(current) || options?.project === false
       ? []
       : yield* fs.up({ targets: ["."], start: location.directory }).pipe(Effect.orDie)
-  const candidates = [".claude", ".agents", ".opencode", ...names.toReversed()]
+  // The candidate list is reversed when building `project`, so the canonical
+  // `.bradbit` directory must come before the legacy `.opencode` one to load
+  // later and win when both define the same agent, command or skill.
+  const projectDirectories = [".bradbit", ".opencode"] as const
+  const candidates = [".claude", ".agents", ...projectDirectories, ...names.toReversed()]
   const discovered = yield* Effect.forEach(
     directories,
     (directory) =>
@@ -140,9 +144,13 @@ export const discover = Effect.fn("ConfigDiscovery.discover")(function* (options
     preferences,
     global: globalEnabled ? globalDirectory : undefined,
     explicit: options?.file ? AbsolutePath.make(path.resolve(options.file)) : undefined,
-    direct: visible.filter((item) => ![".agents", ".claude", ".opencode"].includes(path.basename(item))).toReversed(),
+    direct: visible
+      .filter((item) => ![".agents", ".claude", ...projectDirectories].includes(path.basename(item)))
+      .toReversed(),
     project: yield* Effect.forEach(
-      visibleEntries.filter((entry) => path.basename(entry.item) === ".opencode").toReversed(),
+      visibleEntries
+        .filter((entry) => (projectDirectories as readonly string[]).includes(path.basename(entry.item)))
+        .toReversed(),
       (entry) =>
         entry.missing
           ? Effect.succeed({ path: entry.item, present: false })
