@@ -38,9 +38,13 @@ async function exists(target: string): Promise<boolean> {
 }
 
 async function isBradbitProject(root: string): Promise<boolean> {
+  const kit =
+    (await exists(path.join(root, ".bradbit/agents/guionista.md"))) ||
+    // Legacy projects created before the `.bradbit` migration stay idempotent.
+    (await exists(path.join(root, ".opencode/agents/guionista.md")))
   return (
     (await exists(path.join(root, "AGENTS.md"))) &&
-    (await exists(path.join(root, ".opencode/agents/guionista.md"))) &&
+    kit &&
     (await exists(path.join(root, "biblia/premisa.md")))
   )
 }

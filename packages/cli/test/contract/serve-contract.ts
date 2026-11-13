@@ -88,7 +88,7 @@ async function main() {
     "`init` creates a guionista-kit project with Git",
     initialized.exitCode === 0 &&
       existsSync(join(initTarget, "AGENTS.md")) &&
-      existsSync(join(initTarget, ".opencode/agents/guionista.md")) &&
+      existsSync(join(initTarget, ".bradbit/agents/guionista.md")) &&
       existsSync(join(initTarget, ".git")),
     initialized.stderr.toString().split("\n").slice(0, 4).join(" | "),
   )
