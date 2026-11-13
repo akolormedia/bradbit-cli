@@ -62,8 +62,8 @@ describe("bradbit init (T-3.1.4)", () => {
     })
     for (const relative of [
       "AGENTS.md",
-      ".opencode/agents/guionista.md",
-      ".opencode/commands/escena.md",
+      ".bradbit/agents/guionista.md",
+      ".bradbit/commands/escena.md",
       "biblia/premisa.md",
       "biblia/personajes/_template.md",
       "estructura/.gitkeep",
@@ -91,7 +91,7 @@ describe("bradbit init (T-3.1.4)", () => {
     const result = await initProject(target)
 
     expect(result.alreadyInitialized).toBe(false)
-    expect(await exists(path.join(target, ".opencode/agents/guionista.md"))).toBe(true)
+    expect(await exists(path.join(target, ".bradbit/agents/guionista.md"))).toBe(true)
     expect(isGitRepository(target)).toBe(true)
   })
 
@@ -129,8 +129,25 @@ describe("bradbit init (T-3.1.4)", () => {
     expect(validateProjectName("  ")).toBe("Project name cannot be empty")
   })
 
+  test("accepts an existing .opencode project as already initialized", async () => {
+    const root = await tempRoot()
+    const target = path.join(root, "legacy")
+    await mkdir(path.join(target, ".opencode/agents"), { recursive: true })
+    await mkdir(path.join(target, "biblia"), { recursive: true })
+    await writeFile(path.join(target, "AGENTS.md"), "legacy")
+    await writeFile(path.join(target, ".opencode/agents/guionista.md"), "legacy kit")
+    await writeFile(path.join(target, "biblia/premisa.md"), "legacy premise")
+
+    const result = await initProject(target)
+
+    expect(result.alreadyInitialized).toBe(true)
+    expect(await exists(path.join(target, ".opencode/agents/guionista.md"))).toBe(true)
+    expect(await exists(path.join(target, ".bradbit/agents/guionista.md"))).toBe(false)
+    expect(isGitRepository(target)).toBe(true)
+  })
+
   test("the embedded snapshot contains the kit and excludes exports", () => {
-    expect(guionistaKitFiles[".opencode/agents/guionista.md"]).toContain("guionista")
+    expect(guionistaKitFiles[".bradbit/agents/guionista.md"]).toContain("guionista")
     expect(guionistaKitFiles["biblia/premisa.md"]).toBeDefined()
     expect(Object.keys(guionistaKitFiles).some((file) => file.startsWith("exports/"))).toBe(false)
     expect(Object.keys(guionistaKitFiles).some((file) => file.includes("/.git/"))).toBe(false)
