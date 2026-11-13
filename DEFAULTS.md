@@ -30,13 +30,13 @@ arranque por defecto: el código solo deja la configuración y notas `TODO` para
 cuando exista el runtime. Por tanto, `bradbit` **no arranca LSP ni diagnostics
 por defecto**; si un proyecto declara `lsp` en su configuración, es opt-in.
 
-## Capacidades narrativas: fuera del core
+## Capacidades de escritura: fuera del core
 
-Los agentes (`guionista`, `editor`, `investigador`, `personaje`), comandos
-(`/idea`, `/escena`, `/revisar`, `/voz`…) y skills viven en el **kit del
-proyecto** (`.bradbit/` + `AGENTS.md`; `.opencode/` como legado), nunca en el código del core. Esto es
-deliberado (`ADR-004`): el kit funciona igual en `opencode` por terminal y en
-`bradbit`.
+Los agentes, comandos y skills viven en los **kits del proyecto**
+(`guionista-kit`, `campaign-kit`, `libro-kit`) dentro de `.bradbit/` +
+`AGENTS.md`; `.opencode/` queda como legado. Nunca están en el código del
+core. Esto es deliberado (`ADR-004`): el kit es contenido declarativo y
+`bradbit init --kit <id>` instala el que corresponda.
 
 ## Pendiente (fuera de este ticket)
 

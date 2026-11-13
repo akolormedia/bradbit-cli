@@ -10,8 +10,10 @@ and for writers who should not need to learn a developer terminal.
 ## Quick start
 
 ```bash
-# Create a project from the embedded guionista-kit and initialize Git
-bradbit init mi-serie
+# Create a project from an embedded kit and initialize Git
+bradbit init mi-serie --kit guionista-kit
+bradbit init mi-novela --kit libro-kit
+bradbit init mi-campana --kit campaign-kit
 
 # Connect your own provider key (stored by the CLI)
 bradbit auth login
@@ -28,7 +30,7 @@ bradbit run "Dame tres ideas para el episodio 2"
 - The binary and visible command are **`bradbit`**.
 - `bradbit init <destino>` creates a writing kit project (default `guionista-kit`; `--kit` selects `campaign-kit` or `libro-kit`) and runs `git init`.
 - Writing defaults live in [`DEFAULTS.md`](DEFAULTS.md): generic text/file tools, no LSP runtime
-  started by default, and narrative capabilities in the project's `.bradbit/` kit (`.opencode/` is legacy-compatible).
+  started by default, and writing capabilities in the project's `.bradbit/` kit (`.opencode/` is legacy-compatible).
 - BYOK and custom OpenAI-compatible providers are documented in [`BYOK.md`](BYOK.md).
 - The editor consumes the frozen HTTP/SSE surface in [`CONTRACT.md`](CONTRACT.md).
 
