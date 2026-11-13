@@ -1,6 +1,6 @@
 import { access, mkdir, readdir, stat, writeFile } from "node:fs/promises"
 import path from "node:path"
-import { guionistaKitFiles } from "./guionista-kit.generated"
+import { kits } from "./kits.generated"
 
 export interface InitProjectResult {
   path: string
@@ -38,15 +38,11 @@ async function exists(target: string): Promise<boolean> {
 }
 
 async function isBradbitProject(root: string): Promise<boolean> {
-  const kit =
-    (await exists(path.join(root, ".bradbit/agents/screenwriter.md"))) ||
+  const hasKit =
+    (await exists(path.join(root, ".bradbit"))) ||
     // Legacy projects that still use the `.opencode` folder stay idempotent.
-    (await exists(path.join(root, ".opencode/agents/screenwriter.md")))
-  return (
-    (await exists(path.join(root, "AGENTS.md"))) &&
-    kit &&
-    (await exists(path.join(root, "bible/premise.md")))
-  )
+    (await exists(path.join(root, ".opencode")))
+  return (await exists(path.join(root, "AGENTS.md"))) && hasKit
 }
 
 function gitInit(root: string): void {
@@ -73,8 +69,17 @@ function gitInit(root: string): void {
  * - A non-empty destination is only accepted when it already looks like a
  *   guionista-kit project, in which case initialization is idempotent.
  */
-export async function initProject(destination: string): Promise<InitProjectResult> {
+export async function initProject(
+  destination: string,
+  kitId = "guionista-kit",
+): Promise<InitProjectResult> {
   if (!destination.trim()) throw new InitProjectError("Destination cannot be empty")
+  const kit = kits[kitId]
+  if (!kit) {
+    throw new InitProjectError(
+      `Unknown kit '${kitId}'. Available kits: ${Object.keys(kits).join(", ")}`,
+    )
+  }
 
   const target = path.resolve(destination)
   const name = path.basename(target)
@@ -101,7 +106,7 @@ export async function initProject(destination: string): Promise<InitProjectResul
     await mkdir(target, { recursive: true })
   }
 
-  for (const [relative, content] of Object.entries(guionistaKitFiles)) {
+  for (const [relative, content] of Object.entries(kit.files)) {
     const file = path.join(target, relative)
     await mkdir(path.dirname(file), { recursive: true })
     await writeFile(file, content, "utf8")

@@ -9,7 +9,7 @@ export default Runtime.handler(
   Commands.commands.init,
   (input) =>
     Effect.tryPromise({
-      try: () => initProject(input.destination),
+      try: () => initProject(input.destination, input.kit),
       catch: (cause) => cause,
     }).pipe(
       Effect.tap((result) =>
@@ -18,6 +18,7 @@ export default Runtime.handler(
             ? "Bradbit project already initialized"
             : "Created Bradbit project"
           process.stdout.write(`${prefix} "${result.name}" at ${result.path}${EOL}`)
+          process.stdout.write(`Kit: ${input.kit}${EOL}`)
           if (result.gitInitialized) process.stdout.write(`Initialized Git repository${EOL}`)
         }),
       ),
