@@ -88,7 +88,7 @@ async function main() {
     "`init` creates a guionista-kit project with Git",
     initialized.exitCode === 0 &&
       existsSync(join(initTarget, "AGENTS.md")) &&
-      existsSync(join(initTarget, ".bradbit/agents/guionista.md")) &&
+      existsSync(join(initTarget, ".bradbit/agents/screenwriter.md")) &&
       existsSync(join(initTarget, ".git")),
     initialized.stderr.toString().split("\n").slice(0, 4).join(" | "),
   )
@@ -96,50 +96,50 @@ async function main() {
   // Minimal narrative kit, equivalent to what guionista-kit installs in a project.
   mkdirSync(join(workdir, ".opencode/agent"), { recursive: true })
   writeFileSync(
-    join(workdir, ".opencode/agent/guionista.md"),
-    "---\ndescription: Escribe escenas de guion\nmode: primary\n---\n\nEscribe escenas claras y visuales.\n",
+    join(workdir, ".opencode/agent/screenwriter.md"),
+    "---\ndescription: Writes scenes from .opencode\nmode: primary\n---\n\nWrites clear, visual scenes.\n",
   )
   mkdirSync(join(workdir, ".opencode/command"), { recursive: true })
   writeFileSync(
-    join(workdir, ".opencode/command/escena.md"),
-    "---\ndescription: Escribe una escena\n---\n\nEscribe una escena con formato Fountain.\n",
+    join(workdir, ".opencode/command/scene.md"),
+    "---\ndescription: Writes a scene from .opencode\n---\n\nWrites a scene in Fountain format.\n",
   )
-  mkdirSync(join(workdir, ".opencode/skills/escribir-escena"), { recursive: true })
+  mkdirSync(join(workdir, ".opencode/skills/write-scene"), { recursive: true })
   writeFileSync(
-    join(workdir, ".opencode/skills/escribir-escena/SKILL.md"),
-    "---\nname: escribir-escena\ndescription: Escribe una escena de guion\n---\n\nDesarrolla la escena pedida.\n",
+    join(workdir, ".opencode/skills/write-scene/SKILL.md"),
+    "---\nname: write-scene\ndescription: Writes a scene from .opencode\n---\n\nDevelops the requested scene.\n",
   )
 
   // Canonical `.bradbit` entries with the same ids must win over `.opencode`.
   mkdirSync(join(workdir, ".bradbit/agents"), { recursive: true })
   writeFileSync(
-    join(workdir, ".bradbit/agents/guionista.md"),
-    "---\ndescription: Escribe escenas desde .bradbit\nmode: primary\n---\n\nEscribe escenas desde la carpeta canónica.\n",
+    join(workdir, ".bradbit/agents/screenwriter.md"),
+    "---\ndescription: Writes scenes from .bradbit\nmode: primary\n---\n\nWrites scenes from the canonical folder.\n",
   )
   mkdirSync(join(workdir, ".bradbit/commands"), { recursive: true })
   writeFileSync(
-    join(workdir, ".bradbit/commands/escena.md"),
-    "---\ndescription: Escribe una escena desde .bradbit\n---\n\nEscribe una escena desde la carpeta canónica.\n",
+    join(workdir, ".bradbit/commands/scene.md"),
+    "---\ndescription: Writes a scene from .bradbit\n---\n\nWrites a scene from the canonical folder.\n",
   )
-  mkdirSync(join(workdir, ".bradbit/skills/escribir-escena"), { recursive: true })
+  mkdirSync(join(workdir, ".bradbit/skills/write-scene"), { recursive: true })
   writeFileSync(
-    join(workdir, ".bradbit/skills/escribir-escena/SKILL.md"),
-    "---\nname: escribir-escena\ndescription: Escribe una escena desde .bradbit\n---\n\nDesarrolla la escena desde la carpeta canónica.\n",
+    join(workdir, ".bradbit/skills/write-scene/SKILL.md"),
+    "---\nname: write-scene\ndescription: Writes a scene from .bradbit\n---\n\nDevelops the scene from the canonical folder.\n",
   )
 
   // Legacy-only entries prove `.opencode` still works.
   writeFileSync(
     join(workdir, ".opencode/agent/legacy.md"),
-    "---\ndescription: Agente legacy\nmode: primary\n---\n\nSolo existe en .opencode.\n",
+    "---\ndescription: Legacy agent\nmode: primary\n---\n\nOnly exists in .opencode.\n",
   )
   writeFileSync(
     join(workdir, ".opencode/command/legacy-command.md"),
-    "---\ndescription: Comando legacy\n---\n\nSolo existe en .opencode.\n",
+    "---\ndescription: Legacy command\n---\n\nOnly exists in .opencode.\n",
   )
   mkdirSync(join(workdir, ".opencode/skills/legacy-skill"), { recursive: true })
   writeFileSync(
     join(workdir, ".opencode/skills/legacy-skill/SKILL.md"),
-    "---\nname: legacy-skill\ndescription: Skill legacy\n---\n\nSolo existe en .opencode.\n",
+    "---\nname: legacy-skill\ndescription: Legacy skill\n---\n\nOnly exists in .opencode.\n",
   )
   writeFileSync(join(workdir, "AGENTS.md"), "# Proyecto de prueba\n\nKit narrativo mínimo.\n")
 
@@ -243,9 +243,9 @@ async function main() {
     const command = (name: string) => commands.json?.data?.find((item: any) => item.name === name)
     const skill = (name: string) => skills.json?.data?.find((item: any) => item.name === name)
     const kitReady = () =>
-      agent("guionista")?.description === "Escribe escenas desde .bradbit" &&
-      command("escena")?.description === "Escribe una escena desde .bradbit" &&
-      skill("escribir-escena")?.description === "Escribe una escena desde .bradbit" &&
+      agent("screenwriter")?.description === "Writes scenes from .bradbit" &&
+      command("scene")?.description === "Writes a scene from .bradbit" &&
+      skill("write-scene")?.description === "Writes a scene from .bradbit" &&
       agent("legacy") !== undefined &&
       command("legacy-command") !== undefined &&
       skill("legacy-skill") !== undefined
@@ -258,18 +258,18 @@ async function main() {
       skills = await req("GET", `/api/skill${locationQuery}`)
     }
     check(
-      "GET /api/agent prefers .bradbit/agents/guionista.md",
-      agents.status === 200 && agent("guionista")?.description === "Escribe escenas desde .bradbit",
+      "GET /api/agent prefers .bradbit/agents/screenwriter.md",
+      agents.status === 200 && agent("screenwriter")?.description === "Writes scenes from .bradbit",
       JSON.stringify(agents.json)?.slice(0, 200),
     )
     check(
-      "GET /api/command prefers .bradbit/commands/escena.md",
-      commands.status === 200 && command("escena")?.description === "Escribe una escena desde .bradbit",
+      "GET /api/command prefers .bradbit/commands/scene.md",
+      commands.status === 200 && command("scene")?.description === "Writes a scene from .bradbit",
       JSON.stringify(commands.json)?.slice(0, 200),
     )
     check(
-      "GET /api/skill prefers .bradbit/skills/escribir-escena",
-      skills.status === 200 && skill("escribir-escena")?.description === "Escribe una escena desde .bradbit",
+      "GET /api/skill prefers .bradbit/skills/write-scene",
+      skills.status === 200 && skill("write-scene")?.description === "Writes a scene from .bradbit",
       JSON.stringify(skills.json)?.slice(0, 200),
     )
     check(
