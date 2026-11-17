@@ -27,6 +27,7 @@ interface Manifest {
   version: string
   description: string
   author: string
+  license?: string
   minimumBradbit: string
   contents: string[]
 }
@@ -73,6 +74,7 @@ const lines = [
   "  version: string",
   "  description: string",
   "  author: string",
+  "  license: string",
   "  minimumBradbit: string",
   "  contents: string[]",
   "  files: Record<string, string>",
@@ -87,6 +89,7 @@ for (const { manifest, files } of kits) {
   lines.push(`    version: ${JSON.stringify(manifest.version)},`)
   lines.push(`    description: ${JSON.stringify(manifest.description)},`)
   lines.push(`    author: ${JSON.stringify(manifest.author)},`)
+  lines.push(`    license: ${JSON.stringify(manifest.license ?? "MIT")},`)
   lines.push(`    minimumBradbit: ${JSON.stringify(manifest.minimumBradbit)},`)
   lines.push(`    contents: ${JSON.stringify(manifest.contents)},`)
   lines.push("    files: {")
